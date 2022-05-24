@@ -38,6 +38,12 @@ async function run(){
             const reviews = await cursor.toArray();
             res.send(reviews);
         });
+        
+        // get all users
+        // app.get('/user', verifyJWT, async(req,res)=>{
+        //     const users = await userCollection.find().toArray();
+        //     res.send(users);
+        // })
        
         // google sign in 
         app.put('/user/:email', async (req, res) => {
