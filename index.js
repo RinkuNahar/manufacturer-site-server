@@ -21,6 +21,7 @@ async function run(){
         const productsCollection = client.db('manufacture-capital').collection('product');
         const ordersCollection = client.db('manufacture-capital').collection('order');
         const reviewsCollection = client.db('manufacture-capital').collection('reviews');
+        const userCollection = client.db('manufacture-capital').collection('users');
 
         // Product collection
         app.get('/purchase', async (req, res) => {
@@ -38,6 +39,21 @@ async function run(){
             res.send(reviews);
         });
        
+        // google sign in 
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            //   JAWT Token
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
+            res.send({ result, token });
+        });
+
         // add reviews to home
         app.post('/myReviews', async(req,res)=>{
             const newReviews = req.body;
