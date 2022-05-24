@@ -20,6 +20,7 @@ async function run(){
         await client.connect();
         const productsCollection = client.db('manufacture-capital').collection('product');
         const ordersCollection = client.db('manufacture-capital').collection('order');
+        const reviewsCollection = client.db('manufacture-capital').collection('reviews');
 
         // Product collection
         app.get('/purchase', async (req, res) => {
@@ -28,6 +29,21 @@ async function run(){
             const services = await cursor.toArray();
             res.send(services);
         });
+
+        // reviews collection
+        app.get('/myReviews', async (req, res) => {
+            const query = {};
+            const cursor = reviewsCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        });
+       
+        // add reviews to home
+        app.post('/myReviews', async(req,res)=>{
+            const newReviews = req.body;
+            const result = await reviewsCollection.insertOne(newReviews);
+            res.send(result);
+        })
 
         // to go from home page to purchase page for each product with product id
         app.get('/purchase/:id', async(req,res)=>{
@@ -43,7 +59,6 @@ async function run(){
               const query = { customer:customer };
               const orders = await ordersCollection.find(query).toArray();
               return res.send(orders);
-            
         });
 
         // to send data to database
@@ -53,6 +68,7 @@ async function run(){
             res.send(result);
         });
 
+       
 
     }
     finally{
