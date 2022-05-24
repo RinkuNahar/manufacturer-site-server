@@ -75,6 +75,14 @@ async function run(){
             res.send(supply);
         });
 
+        // to show data in my reviews
+        app.get('/review', async (req, res) => {
+            const review = req.query.review;   
+              const query = { review:review.email };
+              const reviews = await reviewsCollection.find(query).toArray();
+              return res.send(reviews);
+        });
+
         // to show data in my order
         app.get('/order', async (req, res) => {
             const customer = req.query.customer;   
