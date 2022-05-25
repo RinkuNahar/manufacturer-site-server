@@ -60,37 +60,32 @@ async function run(){
         });
 
         // get all users
-        app.get('/user', verifyJWT, async(req,res)=>{
+        app.get('/user', async(req,res)=>{
             const users = await userCollection.find().toArray();
             res.send(users);
         });
 
-        // make admin from user 
-        app.put('/user/admin/:email', async (req, res) => {
+
+          // make admin from user 
+          app.put('/user/admin/:email',verifyJWT, async (req, res) => {
             const email = req.params.email;
-            // const requester = req.decoded.email;
-            // const requesterAccount = await userCollection.findOne({ email: requester });
-          
-              const filter = { email: email };
-              const updateDoc = {
-                $set: { role: 'admin' },
-              };
-              const result = await userCollection.updateOne(filter, updateDoc);
-              res.send(result);
-            
-            // else{
-            //   res.status(403).send({message: 'forbidden'});
-            // }
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if(requesterAccount.role === 'admin'){
+                const filter = { email: email };
+                const updateDoc = {
+                  $set: { role: 'admin' },
+                };
+                const result = await userCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            }
+              
+            else{
+              res.status(403).send({message: 'forbidden'});
+            }
       
           })
-
-        // reviews collection
-        app.get('/myReviews', async (req, res) => {
-            const query = {};
-            const cursor = reviewsCollection.find(query);
-            const reviews = await cursor.toArray();
-            res.send(reviews);
-        });
+       
         
        
         // google sign in 
@@ -106,6 +101,16 @@ async function run(){
             //   JAWT Token
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
             res.send({ result, token });
+        });
+
+
+
+           // reviews collection
+        app.get('/myReviews', async (req, res) => {
+            const query = {};
+            const cursor = reviewsCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
         });
 
         // add reviews to home
