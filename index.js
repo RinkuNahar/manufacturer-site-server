@@ -64,6 +64,14 @@ async function run() {
             const newProduct = req.body;
             const result = await productsCollection.insertOne(newProduct);
             res.send(result);
+        });
+
+        // delete product
+        app.delete('/purchase/:id', async(req,res)=>{
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productsCollection.deleteOne(query);
+            res.send(result);
         })
 
         // get all users
