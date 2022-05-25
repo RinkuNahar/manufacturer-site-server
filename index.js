@@ -40,16 +40,16 @@ async function run(){
         const userCollection = client.db('manufacture-capital').collection('users');
 
         // verify Admin
-        // const verifyAdmin = async(req, res, next) =>{
-        //     const requester = req.decoded.email;
-        //     const requesterAccount = await userCollection.findOne({email: requester});
-        //     if(requesterAccount.role === 'admin'){
-        //         next();
-        //     }
-        //     else{
-        //         res.status(403).send({message: 'forbidden'});
-        //     }
-        // }
+        const verifyAdmin = async(req, res, next) =>{
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({email: requester});
+            if(requesterAccount.role === 'admin'){
+                next();
+            }
+            else{
+                res.status(403).send({message: 'forbidden'});
+            }
+        }
 
         // Product collection
         app.get('/purchase', async (req, res) => {
@@ -63,7 +63,26 @@ async function run(){
         app.get('/user', verifyJWT, async(req,res)=>{
             const users = await userCollection.find().toArray();
             res.send(users);
-        })
+        });
+
+        // make admin from user 
+        app.put('/user/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            // const requester = req.decoded.email;
+            // const requesterAccount = await userCollection.findOne({ email: requester });
+          
+              const filter = { email: email };
+              const updateDoc = {
+                $set: { role: 'admin' },
+              };
+              const result = await userCollection.updateOne(filter, updateDoc);
+              res.send(result);
+            
+            // else{
+            //   res.status(403).send({message: 'forbidden'});
+            // }
+      
+          })
 
         // reviews collection
         app.get('/myReviews', async (req, res) => {
