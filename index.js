@@ -38,6 +38,7 @@ async function run() {
         const ordersCollection = client.db('manufacture-capital').collection('order');
         const reviewsCollection = client.db('manufacture-capital').collection('reviews');
         const userCollection = client.db('manufacture-capital').collection('users');
+        const profileCollection = client.db('manufacture-capital').collection('profile');
 
         // verify Admin
         const verifyAdmin = async (req, res, next) => {
@@ -66,7 +67,7 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services);
         });
-        
+
         // add new product
         app.post('/purchase', async(req,res)=>{
             const newProduct = req.body;
@@ -87,6 +88,14 @@ async function run() {
             const users = await userCollection.find().toArray();
             res.send(users);
         });
+
+        // get particular user
+        app.get('/user/:id', async(req,res)=>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await userCollection.findOne(query);
+            res.send(result);
+        })
 
         // Without admin cannot access
         app.get('/admin/:email', async (req, res) => {
@@ -114,9 +123,7 @@ async function run() {
                 res.status(403).send({ message: 'forbidden' });
             }
 
-        })
-
-
+        });
 
         // google sign in 
         app.put('/user/:email', async (req, res) => {
@@ -133,8 +140,6 @@ async function run() {
             res.send({ result, token });
         });
 
-
-
         // reviews collection
         app.get('/myReviews', async (req, res) => {
             const query = {};
@@ -145,10 +150,25 @@ async function run() {
 
         // add reviews to home
         app.post('/myReviews', async (req, res) => {
-            const newReviews = req.body;
+            const newReviews = req.params;
             const result = await reviewsCollection.insertOne(newReviews);
             res.send(result);
-        })
+        });
+
+        // add profile
+        app.post('/profile', async (req, res) => {
+            const profile = req.body;
+            const result = await profileCollection.insertOne(profile);
+            res.send(result);
+        });
+
+        // get profile
+        // app.get('/profile', async(req,res)=>{
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //      const profile = await profileCollection.findOne(query);
+        //      res.send(profile)
+        // })
 
         // to go from home page to purchase page for each product with product id
         app.get('/purchase/:id', async (req, res) => {
@@ -193,7 +213,10 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const result = await ordersCollection.deleteOne(query);
             res.send(result);
-        })
+        });
+
+        // get user profile
+      
 
     }
     finally {
