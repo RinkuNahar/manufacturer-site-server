@@ -3,6 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
 const app = express();
@@ -60,13 +61,13 @@ async function run() {
             res.send(services);
         });
 
-        // get all orders collection
-        app.get('/order', async (req, res) => {
-            const query = {};
-            const cursor = ordersCollection.find(query);
-            const services = await cursor.toArray();
-            res.send(services);
-        });
+        // get all orders collection--------------
+        // app.get('/order', async (req, res) => {
+        //     const query = {};
+        //     const cursor = ordersCollection.find(query);
+        //     const services = await cursor.toArray();
+        //     res.send(services);
+        // });
 
         // add new product
         app.post('/purchase', async(req,res)=>{
@@ -74,6 +75,27 @@ async function run() {
             const result = await productsCollection.insertOne(newProduct);
             res.send(result);
         });
+
+        // For Payment
+        app.get('/order/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const order = await ordersCollection.findOne(query);
+            res.send(order);
+        });
+
+         // create payment 
+         app.post('/create-payment-intent', async(req, res) =>{
+            const service = req.body;
+            const price = service.price;
+            const amount = price*100;
+            const paymentIntent = await stripe.paymentIntents.create({
+              amount : amount,
+              currency: 'usd',
+              payment_method_types:['card']
+            });
+            res.send({clientSecret: paymentIntent.client_secret})
+          });
 
         // delete product
         app.delete('/purchase/:id', async(req,res)=>{
@@ -163,11 +185,18 @@ async function run() {
         });
 
         // get profile
-        // app.get('/profile', async(req,res)=>{
+        app.get('/profile', async(req,res)=>{
+            const query = {};
+            const cursor = profileCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        })
+
+        // app.get('/profile/:id', async(req,res)=>{
         //     const id = req.params.id;
-        //     const query = { _id: ObjectId(id) };
-        //      const profile = await profileCollection.findOne(query);
-        //      res.send(profile)
+        //     const query = {_id: ObjectId(id)};
+        //     const result = await profileCollection.findOne(query);
+        //     res.send(result);
         // })
 
         // to go from home page to purchase page for each product with product id
