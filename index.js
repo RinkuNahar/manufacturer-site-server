@@ -19,20 +19,20 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      return res.status(401).send({ message: 'UnAuthorized access' });
+        return res.status(401).send({ message: 'UnAuthorized access' });
     }
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
-      if (err) {
-        return res.status(403).send({ message: 'Forbidden access' })
-      }
-      req.decoded = decoded;
-      next();
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' })
+        }
+        req.decoded = decoded;
+        next();
     });
-  }
+}
 
-async function run(){
-    try{
+async function run() {
+    try {
         await client.connect();
         const productsCollection = client.db('manufacture-capital').collection('product');
         const ordersCollection = client.db('manufacture-capital').collection('order');
@@ -40,14 +40,14 @@ async function run(){
         const userCollection = client.db('manufacture-capital').collection('users');
 
         // verify Admin
-        const verifyAdmin = async(req, res, next) =>{
+        const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email;
-            const requesterAccount = await userCollection.findOne({email: requester});
-            if(requesterAccount.role === 'admin'){
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
                 next();
             }
-            else{
-                res.status(403).send({message: 'forbidden'});
+            else {
+                res.status(403).send({ message: 'forbidden' });
             }
         }
 
@@ -60,34 +60,41 @@ async function run(){
         });
 
         // get all users
-        app.get('/user', async(req,res)=>{
+        app.get('/user', async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
         });
 
+        // Without admin cannot access
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin });
+        })
 
-          // make admin from user 
-          app.put('/user/admin/:email',verifyJWT, async (req, res) => {
+        // make admin from user 
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const requester = req.decoded.email;
             const requesterAccount = await userCollection.findOne({ email: requester });
-            if(requesterAccount.role === 'admin'){
+            if (requesterAccount.role === 'admin') {
                 const filter = { email: email };
                 const updateDoc = {
-                  $set: { role: 'admin' },
+                    $set: { role: 'admin' },
                 };
                 const result = await userCollection.updateOne(filter, updateDoc);
                 res.send(result);
             }
-              
-            else{
-              res.status(403).send({message: 'forbidden'});
+
+            else {
+                res.status(403).send({ message: 'forbidden' });
             }
-      
-          })
-       
-        
-       
+
+        })
+
+
+
         // google sign in 
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -105,7 +112,7 @@ async function run(){
 
 
 
-           // reviews collection
+        // reviews collection
         app.get('/myReviews', async (req, res) => {
             const query = {};
             const cursor = reviewsCollection.find(query);
@@ -114,59 +121,59 @@ async function run(){
         });
 
         // add reviews to home
-        app.post('/myReviews', async(req,res)=>{
+        app.post('/myReviews', async (req, res) => {
             const newReviews = req.body;
             const result = await reviewsCollection.insertOne(newReviews);
             res.send(result);
         })
 
         // to go from home page to purchase page for each product with product id
-        app.get('/purchase/:id', async(req,res)=>{
+        app.get('/purchase/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const supply = await productsCollection.findOne(query);
             res.send(supply);
         });
 
         // to show data in my reviews
         app.get('/review', async (req, res) => {
-            const review = req.query.review;   
-              const query = { review:review.email };
-              const reviews = await reviewsCollection.find(query).toArray();
-              return res.send(reviews);
+            const review = req.query.review;
+            const query = { review: review.email };
+            const reviews = await reviewsCollection.find(query).toArray();
+            return res.send(reviews);
         });
 
         // to show data in my order
         app.get('/order', verifyJWT, async (req, res) => {
-            const customer = req.query.customer;   
+            const customer = req.query.customer;
             const decodedEmail = req.decoded.email;
-            if (customer === decodedEmail){
-                const query = { customer:customer };
+            if (customer === decodedEmail) {
+                const query = { customer: customer };
                 const orders = await ordersCollection.find(query).toArray();
                 return res.send(orders);
             }
             else {
                 return res.status(403).send({ message: 'forbidden access' });
-              }    
+            }
         });
 
         // to send data to database
-        app.post('/order', async(req, res)=>{
+        app.post('/order', async (req, res) => {
             const order = req.body;
             const result = await ordersCollection.insertOne(order);
             res.send(result);
         });
 
         // delete my order
-        app.delete('/order/:id', async(req, res)=>{
+        app.delete('/order/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const result = await ordersCollection.deleteOne(query);
             res.send(result);
         })
 
     }
-    finally{
+    finally {
 
     }
 }
