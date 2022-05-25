@@ -59,6 +59,13 @@ async function run() {
             res.send(services);
         });
 
+        // add new product
+        app.post('/purchase', async(req,res)=>{
+            const newProduct = req.body;
+            const result = await productsCollection.insertOne(newProduct);
+            res.send(result);
+        })
+
         // get all users
         app.get('/user', async (req, res) => {
             const users = await userCollection.find().toArray();
