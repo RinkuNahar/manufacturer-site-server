@@ -40,6 +40,7 @@ async function run() {
         const reviewsCollection = client.db('manufacture-capital').collection('reviews');
         const userCollection = client.db('manufacture-capital').collection('users');
         const profileCollection = client.db('manufacture-capital').collection('profile');
+        const paymentCollection = client.db('manufacture-capital').collection('payments');
 
         // verify Admin
         const verifyAdmin = async (req, res, next) => {
@@ -95,6 +96,23 @@ async function run() {
               payment_method_types:['card']
             });
             res.send({clientSecret: paymentIntent.client_secret})
+          });
+
+         // update payment
+        app.patch('/order/:id', async(req, res) =>{
+            const id  = req.params.id;
+            const payment = req.body;
+            const filter = {_id: ObjectId(id)};
+            const updatedDoc = {
+              $set: {
+                paid: true,
+                transactionId: payment.transactionId
+              }
+            }
+
+            const result = await paymentCollection.insertOne(payment);
+            const updatedOrder = await ordersCollection.updateOne(filter, updatedDoc);
+            res.send(updatedOrder);
           });
 
         // delete product
