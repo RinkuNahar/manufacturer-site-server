@@ -242,6 +242,22 @@ async function run() {
             }
         });
 
+            //    update profile
+       app.patch('/profile/:id', async(req, res)=>{
+        const id = req.params.id;
+        const updatedUser = req.body;
+        const filter = {_id: ObjectId(id)};
+        const options ={upsert:true};
+        const updatedDoc ={
+            $set:{
+                profile: profile,
+                id: updatedUser.id
+            }
+        }
+        const result = await profileCollection.updateOne(filter, updatedDoc,options);
+        res.send(result);
+    });
+
         // to go from home page to purchase page for each product with product id
         app.get('/purchase/:id', async (req, res) => {
             const id = req.params.id;
@@ -288,7 +304,6 @@ async function run() {
             res.send(result);
         });
 
-        // get user profile
       
 
     }
