@@ -41,6 +41,7 @@ async function run() {
         const userCollection = client.db('manufacture-capital').collection('users');
         const profileCollection = client.db('manufacture-capital').collection('profile');
         const paymentCollection = client.db('manufacture-capital').collection('payments');
+        const statusCollection = client.db('manufacture-capital').collection('status');
 
         // verify Admin
         const verifyAdmin = async (req, res, next) => {
@@ -114,6 +115,24 @@ async function run() {
             const updatedOrder = await ordersCollection.updateOne(filter, updatedDoc);
             res.send(updatedOrder);
           });
+
+        //   button update
+       app.put('/AllOrder/:id', async(req, res)=>{
+           const id = req.params.id;
+           const updatedUser = req.body;
+           const filter = {_id: ObjectId(id)};
+           const options ={upsert:true};
+           const updatedDoc ={
+               $set:{
+                   name: updatedUser.name,
+                   email: updatedUser.email
+               }
+           }
+           const result = await statusCollection.updateOne(filter, updatedDoc,options);
+           res.send(result);
+
+       })
+
 
         // delete product
         app.delete('/purchase/:id', async(req,res)=>{
