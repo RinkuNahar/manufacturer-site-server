@@ -63,12 +63,12 @@ async function run() {
         });
 
         // get all orders collection--------------
-        // app.get('/order', async (req, res) => {
-        //     const query = {};
-        //     const cursor = ordersCollection.find(query);
-        //     const services = await cursor.toArray();
-        //     res.send(services);
-        // });
+        app.get('/AllOrder', async (req, res) => {
+            const query = {};
+            const cursor = ordersCollection.find(query);
+            const services = await cursor.toArray();
+            res.send(services);
+        });
 
         // add new product
         app.post('/purchase', async(req,res)=>{
