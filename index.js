@@ -117,21 +117,20 @@ async function run() {
           });
 
         //   button update
-       app.put('/AllOrder/:id', async(req, res)=>{
+       app.put('/statusOrder/:id', async(req, res)=>{
            const id = req.params.id;
            const updatedUser = req.body;
            const filter = {_id: ObjectId(id)};
            const options ={upsert:true};
            const updatedDoc ={
                $set:{
-                   name: updatedUser.name,
-                   email: updatedUser.email
+                   delivered: true
                }
            }
-           const result = await statusCollection.updateOne(filter, updatedDoc,options);
+           const result = await ordersCollection.updateOne(filter, updatedDoc,options);
            res.send(result);
 
-       })
+       });
 
 
         // delete product
@@ -229,12 +228,19 @@ async function run() {
             res.send(reviews);
         })
 
-        // app.get('/profile/:id', async(req,res)=>{
-        //     const id = req.params.id;
-        //     const query = {_id: ObjectId(id)};
-        //     const result = await profileCollection.findOne(query);
-        //     res.send(result);
-        // })
+        // to show profile data in my profile
+        app.get('/profile', async (req, res) => {
+            const customer = req.query.customer;
+            const decodedEmail = req.decoded.email;
+            if (customer === decodedEmail) {
+                const query = { customer: customer };
+                const orders = await profileCollection.find(query).toArray();
+                return res.send(orders);
+            }
+            else {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+        });
 
         // to go from home page to purchase page for each product with product id
         app.get('/purchase/:id', async (req, res) => {
@@ -269,6 +275,7 @@ async function run() {
         // to send data to database
         app.post('/order', async (req, res) => {
             const order = req.body;
+            order.delivered = false;
             const result = await ordersCollection.insertOne(order);
             res.send(result);
         });
