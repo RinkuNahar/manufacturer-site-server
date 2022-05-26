@@ -208,7 +208,7 @@ async function run() {
 
         // add reviews to home
         app.post('/myReviews', async (req, res) => {
-            const newReviews = req.params;
+            const newReviews = req.body;
             const result = await reviewsCollection.insertOne(newReviews);
             res.send(result);
         });
